@@ -15,11 +15,11 @@ type Person struct {
 }
 
 const (
-	IsDrop  = true
+	IsDrop = true
 )
 
 func init() {
-	util.InitQueue(1024, 65536)
+	util.InitQueue(512, 65536)
 }
 
 func main() {
@@ -114,7 +114,9 @@ func initDb(session *mgo.Session) {
 			panic(err)
 		}
 	}
+
 	c := session.DB("test").C("people")
+
 	// Index
 	index := mgo.Index{
 		Key: []string{"createdAt"},
@@ -128,4 +130,12 @@ func initDb(session *mgo.Session) {
 	if err != nil {
 		panic(err)
 	}
+
+	/*err = c.Create(&mgo.CollectionInfo{
+		Capped:   true,
+		MaxBytes: 1073741824,
+	})
+	if err != nil {
+		panic(err)
+	}*/
 }
