@@ -20,6 +20,18 @@ func batch() []interface{} {
 	return persons
 }
 
+func FindAll(c *mgo.Collection) {
+	start := time.Now()
+	it := c.Find(nil).Iter()
+	var person Person
+	idx := 0
+	for it.Next(&person) {
+		idx++
+		log.Printf("%d %v\n", idx, person)
+	}
+	log.Printf("DURATION %s\n", time.Now().Sub(start))
+}
+
 func Insert(c *mgo.Collection) {
 	//log.Printf("BEGIN %s\n", time.Now())
 	start := time.Now()
@@ -87,10 +99,10 @@ func InsertConcurrency(c *mgo.Collection) {
 }
 
 func InsertConcurrencyBatch(c *mgo.Collection) {
-	done := make(chan bool, Amount / BatchSize)
+	done := make(chan bool, Amount/BatchSize)
 	//log.Printf("BEGIN %s\n", time.Now())
 	start := time.Now()
-	for i := 0; i < Amount / BatchSize; i++ {
+	for i := 0; i < Amount/BatchSize; i++ {
 		util.JobQueue <- util.Job{
 			Do: func() error {
 				err := c.Insert(batch()...)
@@ -105,7 +117,7 @@ func InsertConcurrencyBatch(c *mgo.Collection) {
 	}
 	//log.Printf("RUNNING %s\n", time.Now())
 	log.Printf("RUNNING %s\n", time.Now().Sub(start))
-	for i := 1; i <= Amount / BatchSize; i++ {
+	for i := 1; i <= Amount/BatchSize; i++ {
 		select {
 		case <-done:
 			if i == 20000 {

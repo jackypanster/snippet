@@ -19,7 +19,7 @@ const (
 )
 
 func init() {
-	util.InitQueue(512, 65536)
+	util.InitQueue(256, 65536)
 }
 
 func main() {
@@ -90,10 +90,10 @@ func main() {
 	//Insert(c)
 
 	// Drop Database
-	initDb(session)
+	//initDb(session)
 	// Collection People
-	c := session.DB("test").C("people")
-	InsertBatch(c)
+	//c := session.DB("test").C("people")
+	//InsertBatch(c)
 
 	// Drop Database
 	//initDb(session)
@@ -103,8 +103,12 @@ func main() {
 
 	initDb(session)
 	// Collection People
-	c = session.DB("test").C("people")
+	c := session.DB("test").C("people")
 	InsertConcurrencyBatch(c)
+
+	FindAll(c)
+
+	initDb(session)
 }
 
 func initDb(session *mgo.Session) {
