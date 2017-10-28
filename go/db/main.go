@@ -1,10 +1,11 @@
 package main
 
 import (
-	"fmt"
+	//"fmt"
 	"gopkg.in/mgo.v2"
-	"gopkg.in/mgo.v2/bson"
+	//"gopkg.in/mgo.v2/bson"
 	"time"
+	"github.com/jackypanster/util"
 )
 
 type Person struct {
@@ -14,44 +15,23 @@ type Person struct {
 }
 
 const (
-	IsDrop = true
+	IsDrop  = true
 )
+
+func init() {
+	util.InitQueue(1024, 65536)
+}
 
 func main() {
 	session, err := mgo.Dial("127.0.0.1")
 	if err != nil {
 		panic(err)
 	}
-
 	defer session.Close()
-
 	session.SetMode(mgo.Monotonic, true)
 
-	// Drop Database
-	if IsDrop {
-		err = session.DB("test").DropDatabase()
-		if err != nil {
-			panic(err)
-		}
-	}
-
-	// Collection People
-	c := session.DB("test").C("people")
-
-	// Index
-	index := mgo.Index{
-		Key: []string{"createdAt"},
-		//Unique:      true,
-		//DropDups:    true,
-		Background:  true,
-		//Sparse:      true,
-		ExpireAfter: time.Second * 24,
-	}
-
-	err = c.EnsureIndex(index)
-	if err != nil {
-		panic(err)
-	}
+	/*
+	initDb()
 
 	// Insert Datas
 	err = c.Insert(&Person{Name: "Ale", Phone: "+55 53 1234 4321", CreatedAt: time.Now()},
@@ -101,4 +81,51 @@ func main() {
 		panic(err)
 	}
 	fmt.Println("Results All: ", results)
+	*/
+
+	// Drop Database
+	//initDb(session)
+	// Collection People
+	//c := session.DB("test").C("people")
+	//Insert(c)
+
+	// Drop Database
+	initDb(session)
+	// Collection People
+	c := session.DB("test").C("people")
+	InsertBatch(c)
+
+	// Drop Database
+	//initDb(session)
+	// Collection People
+	//c = session.DB("test").C("people")
+	//InsertConcurrency(c)
+
+	initDb(session)
+	// Collection People
+	c = session.DB("test").C("people")
+	InsertConcurrencyBatch(c)
+}
+
+func initDb(session *mgo.Session) {
+	if IsDrop {
+		err := session.DB("test").DropDatabase()
+		if err != nil {
+			panic(err)
+		}
+	}
+	c := session.DB("test").C("people")
+	// Index
+	index := mgo.Index{
+		Key: []string{"createdAt"},
+		//Unique:      true,
+		//DropDups:    true,
+		Background: true,
+		//Sparse:      true,
+		ExpireAfter: time.Hour * 1,
+	}
+	err := c.EnsureIndex(index)
+	if err != nil {
+		panic(err)
+	}
 }
